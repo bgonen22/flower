@@ -53,11 +53,17 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
     
     for( int i = 1; i <= 10; i++) {
     	CRGB color = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
-    	lightCircle(i,color);
+    	lightCircle(i,color);    	
+    	lightLeaf(i,color);
     	colorIndex += 3;    
     }
 }
 
+void lightLeaf(int leaf_num,CRGB color) {
+	for (int i = leaf[leaf_num-1] + 1; i <= leaf[leaf_num]; ++i ) {
+		leaf_leds[i] = color;
+	}
+}
 void lightCircle(int circle_num,CRGB color) {
 	for (int i = circle[circle_num-1] + 1; i <= circle[circle_num]; ++i ) {
 		circle_leds[i] = color;
