@@ -69,27 +69,22 @@ void loop() {
   if (WindSpeed_MPH > min_win_value) {
     MinWind();
   } else {
-		IdleImage();
+		IdleImage(255);
   }	
   FastLED.show();
   FastLED.delay(1000 / UPDATES_PER_SECOND);
 }
 
-void minWind() {
-	uint8_t brightness = map(WindSpeed_MPH, 2, 10, 20, 255);;
+void MinWind() {
+	uint8_t brightness = map(WindSpeed_MPH, 2, 10, 20, 255);
+  IdleImage(brightness);    
     
-    for( int i = 1; i <= 10; i++) {
-    	CRGB color = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
-    	lightCircle(i,color);    	
-    	lightLeaf(i,color);
-    	colorIndex += 3;    
-    }  
 }
-void IdleImage () {
+void IdleImage (uint8_t brightness) {
   ChangePalettePeriodically();
   static uint8_t startIndex = 0;
   startIndex = startIndex + 1; /* motion speed */    
-  FillLEDsFromPaletteColors( startIndex);  
+  FillLEDsFromPaletteColors( startIndex,brightness);  
 }
 
 void ReadWind () {
@@ -114,10 +109,8 @@ void ReadWind () {
    
 }
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
-{
-    uint8_t brightness = 255;
-    
+void FillLEDsFromPaletteColors( uint8_t colorIndex, uint8_t brightness)
+{  
     for( int i = 1; i <= 10; i++) {
     	CRGB color = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
     	lightCircle(i,color);    	
