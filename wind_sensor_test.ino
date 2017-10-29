@@ -55,12 +55,15 @@ void setup() {
 
 void loop() {  
   ReadWind();
-  uint8_t brightness =  map(WindSpeed_MPH, 0, 20, 100, 255);
-  CRGB color = ColorFromPalette( currentPalette,  map(WindSpeed_MPH, 0, 20, 0, 255), brightness, currentBlending);
+  uint8_t brightness = map(WindSpeed_MPH, 0, 20, 100, 255);
+  Serial.print("WindSpeed_MPH ");
+  Serial.println(WindSpeed_MPH);
+  CRGB color =  ColorFromPalette( currentPalette,  map(WindSpeed_MPH, 0, 20, 0, 255), brightness, currentBlending);    
   for (int i = 0; i <= NUM_LEDS; ++i ) {
         circle_leds[i] = color;
   }  	
   FastLED.show();
+  
   FastLED.delay(1000 / UPDATES_PER_SECOND);
 }
 
