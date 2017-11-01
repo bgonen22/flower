@@ -4,6 +4,8 @@
 #define CENTER_NUM_LEDS    608
 #define LEAF_LED_PIN     5
 #define LEAF_NUM_LEDS    379 
+#define MAX_WIND         400
+#define MIN_WIND         30
 
 // wind sensor pins 
 #define analogPinForRV    1   
@@ -17,7 +19,7 @@
 
 #define UPDATES_PER_SECOND 100
 
-const float min_win_value = 2;
+const float min_wind_value = 2;
 
 // to calibrate your sensor, put a glass over it, but the sensor should not be
 // touching the desktop surface however.
@@ -66,11 +68,12 @@ void setup() {
 
 void loop() {
   ReadWind();
-  if (WindSpeed_MPH > min_win_value) {
+  if (WindSpeed_MPH > min_wind_value) {
     MinWind();
   } else {
 		IdleImage(255);
   }	
+  
   FastLED.show();
   FastLED.delay(1000 / UPDATES_PER_SECOND);
 }
@@ -105,7 +108,13 @@ void ReadWind () {
     // V0 is zero wind at a particular temperature
     // The constants b and c were determined by some Excel wrangling with the solver.
     
-    WindSpeed_MPH =  pow(((RV_Wind_Volts - zeroWind_volts) /.2300) , 2.7265);   
+    WindSpeed_MPH =  pow(((RV_Wind_Volts - zeroWind_volts) /.2300) , 2.7265);  
+    if (WindSpeed_MPH > MAX_WIND) {
+      WindSpeed_MPH = MAX_WIND;
+    } 
+    if (WindSpeed_MPH < MIN_WIND) {
+      WindSpeed_MPH = 0;
+    } 
    
 }
 
