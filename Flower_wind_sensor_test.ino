@@ -115,7 +115,9 @@ float GetDC() {
         float WindSpeed_MPH = getWindSpeed();
     //    Serial.print("   WindSpeed MPH ");
         //Serial.println((float)WindSpeed_MPH);
-        sum += WindSpeed_MPH;
+        if (WindSpeed_MPH == WindSpeed_MPH) {
+          sum += WindSpeed_MPH;
+        }
         //Serial.print("sum ");
         //Serial.println(sum);
       }
