@@ -3,17 +3,19 @@
   #include <avr/power.h>
 #endif
 
-#define PIN 6
+#define PIN 9
+#define PIN_LEAF 8
 
 #define NumOfPixels 618
-#define analogPinForRV    A1   // change to pins you the analog pins are using
-#define analogPinForTMP   A0
+#define NumOfPixels_LEAF 230
+#define analogPinForRV    A5   // change to pins you the analog pins are using
+#define analogPinForTMP   A4
 
 // to calibrate your sensor, put a glass over it, but the sensor should not be
 // touching the desktop surface however.
 // adjust the zeroWindAdjustment until your sensor reads about zero with the glass over it. 
 
-const float zeroWindAdjustment =  .2; // negative numbers yield smaller wind speeds and vice versa.
+const float zeroWindAdjustment =  -0.2; // negative numbers yield smaller wind speeds and vice versa.
 
 int TMP_Therm_ADunits;  //temp termistor value from wind sensor
 float RV_Wind_ADunits;    //RV output from wind sensor 
@@ -25,6 +27,7 @@ float zeroWind_volts;
 float WindSpeed_MPH;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NumOfPixels, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip_leaf = Adafruit_NeoPixel(NumOfPixels_LEAF, PIN_LEAF, NEO_GRB + NEO_KHZ800);
 float DC = 0;
 void setup() {
 
@@ -34,27 +37,43 @@ void setup() {
   Serial.println("start");
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+  strip_leaf.begin();
+  strip_leaf.show();
 
 }
 
 void loop() {
- // if (DC == 0) {   
- //  DC = GetDC();
- // }   
+ // for(int i=0; i< NumOfPixels; i++) {
+  //  strip.setPixelColor(i, 0);
+  //  Serial.println(i);
+ // }
+  //strip.show();
+  
+  if (DC == 0) {   
+   DC = GetDC();
+  }   
    float WindSpeed_MPH = getWindSpeed();
-   
+   //DC = GetDC();
    WindSpeed_MPH -= DC;
+   int count = 0;
    while (WindSpeed_MPH < 0) {
+      if (count > 10) {
+        WindSpeed_MPH = 0;
+        break;
+      }
       WindSpeed_MPH = getWindSpeed();
       DC = GetDC();
-      WindSpeed_MPH -= DC;   
-      Serial.print(" DC ");
-      Serial.println((float)DC);
+      WindSpeed_MPH -= DC;
+      count++;   
+      //Serial.print(" DC ");
+      //Serial.println((float)DC);
    }
+   
    Serial.print("   WindSpeed MPH ");
    Serial.println((float)WindSpeed_MPH);
-   Serial.print(" DC ");
-   Serial.println((float)DC);
+   //Serial.print(" DC ");
+   //Serial.println((float)DC);
+   
    
   //  Serial.print("   WindSpeed MPH - DC ");
   //  Serial.println((float)WindSpeed_MPH);
@@ -65,10 +84,8 @@ void loop() {
     
     Serial.print(" RV volts ");
     Serial.print((float)RV_Wind_Volts);
-
     Serial.print("\t  TempC*100 ");
     Serial.print(TempCtimes100 );
-
     Serial.print("   ZeroWind volts ");
     Serial.print(zeroWind_volts);
 */
@@ -78,18 +95,28 @@ void loop() {
     Serial.print("   WindSpeed MPH ");
     Serial.println((float)WindSpeed_MPH);
     
-    int power = map(WindSpeed_MPH, 4, 10, 0, 255);
+    int power = map(WindSpeed_MPH, 0, 60, 0, 255);
   //  Serial.print("power ");
   //  Serial.println(power);
-
+    
     for(int i=0; i< NumOfPixels; i++) {
-      uint32_t color = Wheel(i,power);
-     // Serial.print("color ");
-   // Serial.println(color);
+     // uint32_t color = Wheel(i,power);
+      //Serial.print("color ");
+    //Serial.println(color);
       strip.setPixelColor(i, Wheel(i,power));
     }
-    strip.show();
+   
+   strip.show();
+    for(int i=0; i< NumOfPixels_LEAF; i++) {
+     // uint32_t color = Wheel(i,power);
+     // Serial.print("color ");
+    //Serial.println(color);
+      strip_leaf.setPixelColor(i, Wheel(i,power));
+    }
+    strip_leaf.show();
+    
     delay(150);
+   
 
 }
 // Input a value 0 to 255 to get a color value.
@@ -110,21 +137,23 @@ uint32_t Wheel(byte WheelPos, int power) {
   */
 }
 float GetDC() {
-    float sum;
+    float sum = 0;
+
     for (int i =0 ; i<10 ; i++) {
         float WindSpeed_MPH = getWindSpeed();
     //    Serial.print("   WindSpeed MPH ");
         //Serial.println((float)WindSpeed_MPH);
-        if (WindSpeed_MPH == WindSpeed_MPH) {
+        if (WindSpeed_MPH == WindSpeed_MPH) { // validate its not NaN
           sum += WindSpeed_MPH;
         }
         //Serial.print("sum ");
         //Serial.println(sum);
+        delay(50);
       }
   
   float DC = sum/10;
-  Serial.print("sum ");
-  Serial.println(sum);
+ // Serial.print("sum ");
+  //Serial.println(sum);
 
   return DC;
 
@@ -149,6 +178,7 @@ float getWindSpeed() {
     // V0 is zero wind at a particular temperature
     // The constants b and c were determined by some Excel wrangling with the solver.
     
+  // WindSpeed_MPH =  pow(((RV_Wind_Volts - zeroWind_volts) /.2300) , 2.7265);
    WindSpeed_MPH =  pow(((RV_Wind_Volts - zeroWind_volts) /.2300) , 2.7265);   
    return WindSpeed_MPH;
 }
